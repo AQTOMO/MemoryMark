@@ -1,12 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using System.Linq;
 
 public class GameManager : MonoBehaviour {
+
+	static GameManager instance;
+	public static GameManager Instance {
+		get {
+			return instance ?? (instance = FindObjectOfType<GameManager>());
+		}
+	}
+
+	public Text turnText;
+	public Text highScoreText;
 
 	const float loadingTime = 3;
 
 	int score = 0;
+	public int Score {
+		get { return score; }
+		set {
+			score = value;
+			turnText.text = score.ToString();
+		}
+	}
 
 	public enum State {
 		Display,
@@ -61,10 +80,8 @@ public class GameManager : MonoBehaviour {
 		Game.Result result = game.SendInput(GetInputMakrk());
 		Debug.Log(result);
 		if (result == Game.Result.Complete) {
-			score++;
 			StartCoroutine(NowLoading());
 		} else if (result == Game.Result.Success) {
-			score++;
 		}
 	}
 
@@ -86,9 +103,13 @@ public class GameManager : MonoBehaviour {
 	}
 
 	IEnumerator NowLoading() {
+		Score++;
+
 		yield return new WaitForSeconds(loadingTime);
 		StartNewGame();
 	}
+
+
 
 }
 
@@ -121,16 +142,12 @@ public class Game {
 
 	public List<Mark> GenereateRandomMarks(Difficulty difficulty) {
 
-		var list = new List<Mark>() {
-			Mark.Circle,
-			Mark.Cross,
-			Mark.Triangle,
-			Mark.Square
-		};
+		List<Mark> marks = new List<Mark>();
+		for (int i = 0; i < GameManager.Instance.Score + 1; i++) {
+			marks.Add(GetRandomMark());
+		}
 
-
-		// TODO 問題生成実装方法を考える
-		return list;
+		return marks;
 	}
 
 	public Result SendInput(Mark inputMark) {
@@ -157,6 +174,17 @@ public class Game {
 
 	public void ResetMarkCount() {
 		markCount = 0;
+	}
+
+
+	IEnumerator<Mark> GenerateMarks(int count) {
+		for (int i = 0; i < count; i++) {
+			yield return GetRandomMark();
+		}
+	}
+
+	Mark GetRandomMark() {
+		return (Mark) Random.Range(0, 4);
 	}
 
 }
