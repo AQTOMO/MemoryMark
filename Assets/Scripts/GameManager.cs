@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
+	int score = 0;
+
 	public enum State {
 		Display,
 		Input,
@@ -32,8 +34,14 @@ public class GameManager : MonoBehaviour {
 		state = State.Display;
 	}
 
-	void DisplayMark() {
+	public void DisplayMark() {
 		// TODO マークを表示する
+		if (game.HasNextMark()) {
+			//uiManager.RecieveMark(game.CurrentMark);
+			game.SetNextMark();
+		} else {
+			state = State.Input;
+		}
 	}
 
 	void CheckInput() {
@@ -42,8 +50,11 @@ public class GameManager : MonoBehaviour {
 
 		Game.Result result = game.SendInput(GetInputMakrk());
 
-		if (result == Game.Result.Complete)
+		if (result == Game.Result.Complete) {
 			StartNewGame();
+		} else if (result == Game.Result.Success) {
+			score++;
+		}
 	}
 
 	bool IsEnableInput() {
@@ -63,9 +74,6 @@ public class GameManager : MonoBehaviour {
 		throw new System.ArgumentException();
 	}
 
-	IEnumerator Waiting() {
-		yield return new WaitWhile(() => waiting);
-	}
 }
 
 
@@ -74,6 +82,12 @@ public class Game {
 
 	int markCount;
 	List<Mark> marks;
+	public Mark CurrentMark {
+		get {
+			return marks[markCount];
+		}
+	}
+
 	Difficulty difficulty;
 
 	public enum Result {
@@ -106,6 +120,14 @@ public class Game {
 
 	public bool CheckMarkCorrection(Mark inputMark) {
 		return marks[markCount] == inputMark;
+	}
+
+	public void SetNextMark() {
+		markCount++;
+	}
+
+	public bool HasNextMark() {
+		return markCount < marks.Count;
 	}
 
 }
