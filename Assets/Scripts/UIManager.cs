@@ -19,11 +19,14 @@ public class UIManager : MonoBehaviour
     private float speedRate;
     private bool isRunning;
 
+	GameManager gameManager;
+
     #region event
     // Use this for initialization
     void Start()
     {
-        StartCoroutine(Test());
+		gameManager = GetComponent<GameManager>();
+        //StartCoroutine(Test());
 
     }
 
@@ -34,7 +37,7 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
-    private void ReceiveMark(Mark receivedMark)
+    public void ReceiveMark(Mark receivedMark)
     {
         GameObject markObj = null;
         switch (receivedMark)
@@ -75,27 +78,29 @@ public class UIManager : MonoBehaviour
                 yield return null;
             }
             mark.transform.localPosition = startPos;
-            isRunning = false;
+			isRunning = false;
+
+			gameManager.DisplayMark();
         }
 
     }
 
-    private IEnumerator Test()
-    {
-        int rand = 0;
-        while (true)
-        {
-            rand = Random.Range(0, 4);
-            switch (rand)
-            {
-                case 0: ReceiveMark(Mark.Circle); break;
-                case 1: ReceiveMark(Mark.Cross); break;
-                case 2: ReceiveMark(Mark.Square); break;
-                case 3: ReceiveMark(Mark.Triangle); break;
-            }
+    //private IEnumerator Test()
+    //{
+    //    int rand = 0;
+    //    while (true)
+    //    {
+    //        rand = Random.Range(0, 4);
+    //        switch (rand)
+    //        {
+    //            case 0: ReceiveMark(Mark.Circle); break;
+    //            case 1: ReceiveMark(Mark.Cross); break;
+    //            case 2: ReceiveMark(Mark.Square); break;
+    //            case 3: ReceiveMark(Mark.Triangle); break;
+    //        }
                
-            yield return null;
-        }
-    }
+    //        yield return null;
+    //    }
+    //}
 
 }

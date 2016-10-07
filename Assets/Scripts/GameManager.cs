@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
+	const float loadingTime = 3;
+
 	int score = 0;
 
 	public enum State {
@@ -15,11 +17,14 @@ public class GameManager : MonoBehaviour {
 
 	State state = State.Display;
 
-	bool waiting = false;
+	UIManager uiManager;
 
 	// Use this for initialization
 	void Start () {
+		uiManager = GetComponent<UIManager>();
+
 		StartNewGame();
+
 	}
 	
 	// Update is called once per frame
@@ -32,15 +37,20 @@ public class GameManager : MonoBehaviour {
 
 	void StartNewGame() {
 		state = State.Display;
+		game = new Game(Difficulty.Easy);
+		uiManager.ReceiveMark(game.CurrentMark);
+		game.SetNextMark();
 	}
 
 	public void DisplayMark() {
+		Debug.Log("display mark");
 		// TODO マークを表示する
 		if (game.HasNextMark()) {
-			//uiManager.RecieveMark(game.CurrentMark);
+			uiManager.ReceiveMark(game.CurrentMark);
 			game.SetNextMark();
 		} else {
 			state = State.Input;
+			game.ResetMarkCount();
 		}
 	}
 
@@ -49,9 +59,10 @@ public class GameManager : MonoBehaviour {
 			return;
 
 		Game.Result result = game.SendInput(GetInputMakrk());
-
+		Debug.Log(result);
 		if (result == Game.Result.Complete) {
-			StartNewGame();
+			score++;
+			StartCoroutine(NowLoading());
 		} else if (result == Game.Result.Success) {
 			score++;
 		}
@@ -72,6 +83,11 @@ public class GameManager : MonoBehaviour {
 			return Mark.Triangle;
 		}
 		throw new System.ArgumentException();
+	}
+
+	IEnumerator NowLoading() {
+		yield return new WaitForSeconds(loadingTime);
+		StartNewGame();
 	}
 
 }
@@ -100,12 +116,21 @@ public class Game {
 	public Game(Difficulty difficulty, int level = 0) {
 		markCount = 0;
 		this.difficulty = difficulty;
-		marks = GenereateRandomMarks(difficulty);
+		marks = GenereateRandomMarks(this.difficulty);
 	}
 
 	public List<Mark> GenereateRandomMarks(Difficulty difficulty) {
+
+		var list = new List<Mark>() {
+			Mark.Circle,
+			Mark.Cross,
+			Mark.Triangle,
+			Mark.Square
+		};
+
+
 		// TODO 問題生成実装方法を考える
-		return null;
+		return list;
 	}
 
 	public Result SendInput(Mark inputMark) {
@@ -113,7 +138,7 @@ public class Game {
 			return Result.Fail;
 
 		markCount++;
-		if (markCount > marks.Count)
+		if (markCount >= marks.Count)
 			return Result.Complete;
 		return Result.Success;
 	}
@@ -128,6 +153,10 @@ public class Game {
 
 	public bool HasNextMark() {
 		return markCount < marks.Count;
+	}
+
+	public void ResetMarkCount() {
+		markCount = 0;
 	}
 
 }
